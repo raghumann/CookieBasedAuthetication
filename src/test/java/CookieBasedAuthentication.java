@@ -3,6 +3,9 @@ import io.restassured.filter.session.SessionFilter;
 import io.restassured.path.json.JsonPath;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+
+import java.io.File;
+
 import static io.restassured.RestAssured.given;
 
 
@@ -12,9 +15,10 @@ public class CookieBasedAuthentication {
 
     private static final String CREATE_ISSUE = "/rest/api/2/issue";
     private static final String CREATE_SESSION = "/rest/auth/1/session";
-    private static final String ADD_COMMENT ="rest/api/2/issue/{key}/comment";
+    private static final String ADD_COMMENT ="/rest/api/2/issue/{key}/comment";
     SessionFilter sessionFilter;
-    static String newlyCreatedTicket = "OZ-29";
+    static String newlyCreatedTicket = "10106";
+    private static final String ADD_ATTACHEMNT = "/rest/api/2/issue/{key}/attachments";
 
     @BeforeTest
     public void setup() {
@@ -49,12 +53,23 @@ public class CookieBasedAuthentication {
         given().log().all().header("Content-Type","application/json;charset=UTF-8").pathParam("key",newlyCreatedTicket).body(Payload.getAddCommentPayload()).filter(sessionFilter)
                 .when().post(ADD_COMMENT)
                 .then().log().all();
-
     }
 
 
+    @Test
+    public void addAttachments() {
+        sessionFilter=createSession();
 
+        //attaching file using multipart header
+        given()
+                .header("X-Atlassian-Token","nocheck")
+                .filter(sessionFilter)
+                .pathParam("key",newlyCreatedTicket)
+                .header("Content-Type","multipart/form-data")
+                .multiPart("file",new File("resources/JiraAttachment.txt"))
+                .when().post(ADD_ATTACHEMNT)
+                .then().log().all().assertThat().statusCode(200);
 
-
+    }
 
 }
