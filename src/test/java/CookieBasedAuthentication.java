@@ -14,6 +14,7 @@ public class CookieBasedAuthentication {
 
 
     private static final String CREATE_ISSUE = "/rest/api/2/issue";
+    private static final String ISSUE_DETAILS = "/rest/api/2/issue/{key}";
     private static final String CREATE_SESSION = "/rest/auth/1/session";
     private static final String ADD_COMMENT ="/rest/api/2/issue/{key}/comment";
     SessionFilter sessionFilter;
@@ -71,5 +72,17 @@ public class CookieBasedAuthentication {
                 .then().log().all().assertThat().statusCode(200);
 
     }
+
+    @Test
+    public void getSpecificDetailsFromTicket(){
+        sessionFilter = createSession();
+        given().log().all()
+                .filter(sessionFilter)
+                .queryParam("fields","attachment")
+                .pathParam("key",newlyCreatedTicket)
+                .when().get(ISSUE_DETAILS)
+                .then().log().all().assertThat().statusCode(200);
+    }
+
 
 }
